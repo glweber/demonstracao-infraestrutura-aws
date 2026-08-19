@@ -1,0 +1,148 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demonstration-service
+spec:
+  replicas: 3
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      # Surge before terminating, so that capacity never dips below the declared
+      # replica count during a rollout.
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: demonstration-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: demonstration-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: /metrics
+    spec:
+      serviceAccountName: demonstration-service
+      automountServiceAccountToken: false
+
+      # Withdrawing readiness is asynchronous with endpoint removal across every
+      # node. The grace period gives kube-proxy and the load balancer controller
+      # time to stop routing before the process is signalled.
+      terminationGracePeriodSeconds: 45
+
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+
+      # Spread replicas across zones first and nodes second. ScheduleAnyway keeps a
+      # single-node cluster viable, which is what allows the same manifest to be
+      # exercised in continuous integration.
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: demonstration-service
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: demonstration-service
+
+      containers:
+        - name: service
+          # Replaced per environment by the images transformer in each overlay.
+          image: demonstration-service:local
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+
+          env:
+            - name: APP_ENVIRONMENT
+              value: base
+            - name: APP_LOG_LEVEL
+              value: INFO
+            - name: APP_PORT
+              value: "8000"
+            - name: APP_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: APP_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+
+          # A CPU request reserves a scheduling guarantee; a CPU limit only
+          # introduces throttling once the guarantee is met, which degrades tail
+          # latency without protecting any neighbour. Memory is limited because it
+          # is incompressible: an unbounded container evicts its neighbours.
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              memory: 256Mi
+
+          # Start-up is gated separately from liveness so that a slow start cannot
+          # be mistaken for a hung process and restarted in a loop.
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 2
+            failureThreshold: 30
+
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 2
+
+          lifecycle:
+            preStop:
+              exec:
+                # Endpoint propagation races with SIGTERM delivery. Pausing before
+                # the signal lets in-flight connections finish against an instance
+                # that has already been removed from the load balancer.
+                command: ["sleep", "10"]
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+
+      volumes:
+        # The root filesystem is read-only, so the writable scratch space the
+        # interpreter expects is supplied explicitly and bounded.
+        - name: tmp
+          emptyDir:
+            sizeLimit: 64Mi

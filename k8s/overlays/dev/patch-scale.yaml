@@ -1,0 +1,25 @@
+# A single replica, sized for a laptop or a continuous integration runner. The
+# disruption budget and autoscaler floors are lowered to match, since a budget that
+# cannot be satisfied blocks every drain.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demonstration-service
+spec:
+  replicas: 1
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: demonstration-service
+spec:
+  maxUnavailable: 1
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: demonstration-service
+spec:
+  minReplicas: 1
+  maxReplicas: 3

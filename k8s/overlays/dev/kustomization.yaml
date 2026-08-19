@@ -1,0 +1,22 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: demonstration
+
+resources:
+  - ../../base
+
+# The image is built locally and loaded straight into the cluster node, so no
+# registry is involved and nothing is published.
+images:
+  - name: demonstration-service
+    newName: demonstration-service
+    newTag: local
+
+# No Ingress is defined here. The production overlay attaches an Application Load
+# Balancer, which has no counterpart in a local cluster; port-forwarding covers the
+# same need without pretending the resource applies.
+patches:
+  - path: patch-scale.yaml
+  - path: patch-environment.yaml

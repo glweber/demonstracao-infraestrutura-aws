@@ -1,0 +1,65 @@
+# Packaging and tooling configuration — PEP 621.
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "demonstration-service"
+version = "1.0.0"
+description = "Reference HTTP workload used to exercise the container and cluster configuration"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+authors = [{ name = "Guilherme Weber" }]
+dependencies = [
+  "fastapi==0.115.6",
+  "uvicorn[standard]==0.34.0",
+  "prometheus-client==0.21.1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest==8.3.4",
+  "pytest-cov==6.0.0",
+  "httpx==0.28.1",
+  "mypy==1.14.1",
+  "ruff==0.8.6",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+# Rule families: pycodestyle, pyflakes, isort, bugbear, comprehensions, pyupgrade,
+# pep8-naming, pydocstyle (PEP 257), security, and simplification.
+select = ["E", "W", "F", "I", "B", "C4", "UP", "N", "D", "S", "SIM", "ANN", "RUF"]
+ignore = [
+  "D203", # Incompatible with D211; D211 is the retained convention.
+  "D213", # Incompatible with D212; D212 is the retained convention.
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101", "D103", "ANN201"] # Assertions and terse test names are idiomatic.
+
+[tool.ruff.lint.pydocstyle]
+convention = "pep257"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unreachable = true
+disallow_any_explicit = false
+files = ["src", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers --cov=service --cov-report=term-missing --cov-fail-under=90"
+pythonpath = ["src"]
+
+[tool.coverage.run]
+branch = true

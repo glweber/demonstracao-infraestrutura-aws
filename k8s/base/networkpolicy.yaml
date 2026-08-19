@@ -1,0 +1,61 @@
+# Network policy operates as a whitelist: once any policy selects a pod, all traffic
+# in the affected direction is denied unless another rule permits it. The first
+# policy therefore establishes the default deny, and the second grants back only
+# what the workload demonstrably needs.
+#
+# Limitation: the default kind CNI does not implement NetworkPolicy, so continuous
+# integration proves only that these objects are schema-valid and admitted.
+# Enforcement is exercised on EKS, where the VPC CNI applies them.
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+spec:
+  # An empty selector matches every pod in the namespace, including workloads added
+  # later, so a new deployment is denied by default rather than exposed by default.
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: demonstration-service
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: demonstration-service
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Load balancer targets and in-cluster callers reach the HTTP port only. The
+    # source is expressed as a namespace selector rather than a CIDR so the rule
+    # survives any renumbering of the VPC.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: demonstration
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: TCP
+          port: 8000
+  egress:
+    # Name resolution is the only egress this workload requires. Anything further,
+    # such as reaching an AWS API endpoint, must be added explicitly and reviewed.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

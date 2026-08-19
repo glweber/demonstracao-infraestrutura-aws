@@ -1,0 +1,107 @@
+# Kubernetes pipeline.
+#
+# The manifests are not merely rendered and linted: they are applied to a real
+# Kubernetes cluster created on the runner, the rollout is awaited, and the running
+# workload is exercised through its Service. A manifest that renders but cannot
+# schedule, pass admission or become ready fails here rather than in an environment
+# that matters.
+---
+name: kubernetes
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "k8s/**"
+      - "docker/**"
+      - "app/**"
+      - "scripts/**"
+      - ".github/workflows/kubernetes.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "k8s/**"
+      - "docker/**"
+      - "app/**"
+      - "scripts/**"
+      - ".github/workflows/kubernetes.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kubernetes-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+env:
+  IMAGE: demonstration-service:local
+  CLUSTER_NAME: demonstration
+  NAMESPACE: demonstration
+
+jobs:
+  manifests:
+    name: manifests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Install kubeconform
+        run: |
+          set -euo pipefail
+          version=v0.7.0
+          curl -fsSL "https://github.com/yannh/kubeconform/releases/download/${version}/kubeconform-linux-amd64.tar.gz" \
+            | tar -xz -C /usr/local/bin kubeconform
+          kubeconform -v
+
+      - name: Render and validate every overlay
+        run: |
+          set -euo pipefail
+          for overlay in k8s/overlays/*; do
+            echo "==> ${overlay}"
+            kubectl kustomize "${overlay}" \
+              | kubeconform -strict -summary -ignore-missing-schemas -kubernetes-version 1.31.0
+          done
+
+  cluster:
+    name: cluster
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    needs: manifests
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Build the image
+        run: |
+          docker build \
+            --file docker/Dockerfile \
+            --tag "${IMAGE}" \
+            --build-arg APP_VERSION=0.0.0-ci \
+            --build-arg COMMIT_SHA="${GITHUB_SHA}" \
+            .
+
+      - name: Create the cluster
+        uses: helm/kind-action@a1b0e391336a6ee6713a0583f8c6240d70863de3 # v1.12.0
+        with:
+          cluster_name: ${{ env.CLUSTER_NAME }}
+          config: k8s/kind-cluster.yaml
+
+      - name: Deploy the development overlay
+        run: scripts/kind-up.sh
+
+      - name: Verify the running workload
+        run: scripts/smoke-test.sh
+
+      # Diagnostics are collected only on failure, where they are the difference
+      # between a reproducible report and a rerun.
+      - name: Collect diagnostics
+        if: failure()
+        run: |
+          kubectl -n "${NAMESPACE}" get all -o wide || true
+          kubectl -n "${NAMESPACE}" describe pods || true
+          kubectl -n "${NAMESPACE}" logs -l app.kubernetes.io/name=demonstration-service --all-containers --tail=200 || true
+          kubectl get events --all-namespaces --sort-by=.lastTimestamp | tail -50 || true

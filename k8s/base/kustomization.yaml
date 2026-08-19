@@ -1,0 +1,27 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: demonstration
+
+resources:
+  - namespace.yaml
+  - serviceaccount.yaml
+  - deployment.yaml
+  - service.yaml
+  - poddisruptionbudget.yaml
+  - horizontalpodautoscaler.yaml
+  - networkpolicy.yaml
+
+# The recommended label set. Only the name label is propagated into selectors,
+# because a selector is immutable once a Deployment exists: including the version
+# label would make every release an unappliable change.
+labels:
+  - includeSelectors: true
+    pairs:
+      app.kubernetes.io/name: demonstration-service
+  - includeSelectors: false
+    pairs:
+      app.kubernetes.io/part-of: demonstration-platform
+      app.kubernetes.io/component: api
+      app.kubernetes.io/managed-by: kustomize

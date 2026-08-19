@@ -1,0 +1,41 @@
+# Application Load Balancer provisioned by the AWS Load Balancer Controller.
+#
+# The controller reads these annotations and creates the load balancer, listeners
+# and target group. Target type "ip" registers pod addresses directly, which removes
+# the second hop through a node port and lets a pod be deregistered the moment its
+# readiness is withdrawn.
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: demonstration-service
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS13-1-2-2021-06
+    # Certificate ARN is a placeholder, replaced by the deployment pipeline.
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:eu-west-1:111122223333:certificate/00000000-0000-0000-0000-000000000000
+    # Health checks target readiness, not liveness, so the load balancer stops
+    # sending traffic to a draining instance without waiting for it to be killed.
+    alb.ingress.kubernetes.io/healthcheck-path: /readyz
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "10"
+    alb.ingress.kubernetes.io/healthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: "2"
+    # Deregistration must outlast the pod's termination grace period, otherwise a
+    # connection can be cut before the container has finished serving it.
+    alb.ingress.kubernetes.io/target-group-attributes: deregistration_delay.timeout_seconds=60
+    alb.ingress.kubernetes.io/load-balancer-attributes: routing.http.drop_invalid_header_fields.enabled=true,access_logs.s3.enabled=true
+spec:
+  ingressClassName: alb
+  rules:
+    - host: demonstration.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: demonstration-service
+                port:
+                  name: http

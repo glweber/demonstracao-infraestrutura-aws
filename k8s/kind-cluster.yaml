@@ -1,0 +1,12 @@
+# Local cluster definition used by continuous integration and by developers.
+#
+# A single node keeps start-up under a minute, which is what makes running the real
+# manifests on every push practical. The node image is pinned by digest so that a
+# rebuild months from now provisions the same Kubernetes version.
+---
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: demonstration
+nodes:
+  - role: control-plane
+    image: kindest/node:v1.34.0@sha256:7416a61b42b1662ca6ca89f02028ac133a309a2a30ba309614e8ec94d976dc5a

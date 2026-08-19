@@ -1,0 +1,23 @@
+# The build context is the repository root so that app/ and docker/ are both
+# reachable; everything not required to build the image is excluded here to keep
+# the context small and to prevent accidental inclusion of local state.
+.git
+.github
+.serena
+.venv
+docs
+k8s
+scripts
+terraform
+**/__pycache__
+**/*.py[codz]
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+**/.coverage
+**/htmlcov
+**/*.egg-info
+app/tests
+*.md
+.env
+.envrc

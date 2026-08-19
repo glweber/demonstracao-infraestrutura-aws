@@ -1,0 +1,22 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: demonstration
+
+resources:
+  - ../../base
+  - ingress.yaml
+
+# The registry account and region are placeholders. They are replaced by the
+# deployment pipeline with the value of the image_repository_url output from the
+# production Terraform environment.
+images:
+  - name: demonstration-service
+    newName: 111122223333.dkr.ecr.eu-west-1.amazonaws.com/demonstration-service
+    newTag: v1.0.0
+
+patches:
+  - path: patch-scale.yaml
+  - path: patch-environment.yaml
+  - path: patch-irsa.yaml

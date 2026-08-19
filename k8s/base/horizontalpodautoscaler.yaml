@@ -1,0 +1,32 @@
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: demonstration-service
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: demonstration-service
+  minReplicas: 3
+  maxReplicas: 12
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+  behavior:
+    scaleUp:
+      # React to load quickly; the cost of a surplus replica is far lower than the
+      # cost of saturation.
+      stabilizationWindowSeconds: 30
+    scaleDown:
+      # Retreat slowly, so that a brief trough does not remove capacity that a
+      # subsequent peak immediately needs back.
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 50
+          periodSeconds: 60

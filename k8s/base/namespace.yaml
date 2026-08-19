@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: demonstration
+  labels:
+    # Pod Security Admission. The restricted profile is the strictest of the three
+    # built-in levels and rejects any pod that does not run unprivileged with a
+    # read-only root filesystem and all capabilities dropped.
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: latest
+    # Warning and auditing are set one level above enforcement so that a future
+    # tightening of the profile is visible before it starts rejecting workloads.
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/audit: restricted

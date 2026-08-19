@@ -1,0 +1,15 @@
+# Binds the service account to the IAM role created by the irsa Terraform module.
+# The identity webhook detects this annotation and projects an audience-scoped token
+# into the pod, which the AWS SDK exchanges for short-lived credentials. No access
+# key exists at any point in the flow.
+#
+# The account identifier is a placeholder, replaced by the pipeline with the
+# workload_role_arn output of the production environment.
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: demonstration-service
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::111122223333:role/demonstration-platform-prod-workload
+    eks.amazonaws.com/sts-regional-endpoints: "true"

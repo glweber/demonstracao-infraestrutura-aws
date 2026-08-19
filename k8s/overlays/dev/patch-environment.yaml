@@ -1,0 +1,15 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demonstration-service
+spec:
+  template:
+    spec:
+      containers:
+        - name: service
+          env:
+            - name: APP_ENVIRONMENT
+              value: dev
+            - name: APP_LOG_LEVEL
+              value: DEBUG
