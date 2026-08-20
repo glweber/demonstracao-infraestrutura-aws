@@ -1,6 +1,6 @@
 # Default reviewer for every path. Refine per directory as the team grows.
-*                       @srallpha
+*                       @glweber
 
-/terraform/             @srallpha
-/k8s/                   @srallpha
-/.github/workflows/     @srallpha
+/terraform/             @glweber
+/k8s/                   @glweber
+/.github/workflows/     @glweber

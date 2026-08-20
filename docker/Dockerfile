@@ -51,7 +51,7 @@ LABEL org.opencontainers.image.title="demonstration-service" \
       org.opencontainers.image.revision="${COMMIT_SHA}" \
       org.opencontainers.image.created="${BUILD_TIMESTAMP}" \
       org.opencontainers.image.licenses="Apache-2.0" \
-      org.opencontainers.image.source="https://github.com/srallpha/demonstracao-infraestrutura-aws"
+      org.opencontainers.image.source="https://github.com/glweber/demonstracao-infraestrutura-aws"
 
 ENV PATH="/opt/venv/bin:${PATH}" \
     PYTHONDONTWRITEBYTECODE=1 \
