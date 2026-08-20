@@ -13,7 +13,7 @@
 # ---------------------------------------------------------------------------
 # Stage 1 — build
 # ---------------------------------------------------------------------------
-FROM python@sha256:a116514e19457bcb7af7efe9c3dd0b9b71e85b317694e7882a1c52aa15a78134 AS build
+FROM python@sha256:4fad23465a06cc5149a541fbec6f87e234a64dc0550f6bfdd2d290d8f03240df AS build
 
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=1 \
@@ -42,7 +42,7 @@ RUN python -m venv /opt/venv \
 # ---------------------------------------------------------------------------
 # Stage 2 — runtime
 # ---------------------------------------------------------------------------
-FROM python@sha256:a116514e19457bcb7af7efe9c3dd0b9b71e85b317694e7882a1c52aa15a78134 AS runtime
+FROM python@sha256:4fad23465a06cc5149a541fbec6f87e234a64dc0550f6bfdd2d290d8f03240df AS runtime
 
 # Build metadata supplied by the build system; surfaced by the service at "/" and
 # recorded as OCI annotations so that a running image can be traced to its source.
