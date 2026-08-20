@@ -7,7 +7,8 @@
 
 set -euo pipefail
 
-readonly REPOSITORY_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPOSITORY_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+readonly REPOSITORY_ROOT
 readonly CLUSTER_NAME="${CLUSTER_NAME:-demonstration}"
 readonly IMAGE="${IMAGE:-demonstration-service:local}"
 readonly NAMESPACE="${NAMESPACE:-demonstration}"

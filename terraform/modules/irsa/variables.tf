@@ -62,13 +62,13 @@ variable "inline_policy_json" {
 }
 
 variable "max_session_duration_seconds" {
-  description = "Upper bound on the lifetime of credentials issued for this role."
+  description = "Ceiling on the lifetime of a session assumed against this role. IAM does not accept a value below one hour; a caller may still request a shorter session."
   type        = number
   default     = 3600
 
   validation {
-    condition     = var.max_session_duration_seconds >= 900 && var.max_session_duration_seconds <= 43200
-    error_message = "The session duration must be between 900 and 43200 seconds."
+    condition     = var.max_session_duration_seconds >= 3600 && var.max_session_duration_seconds <= 43200
+    error_message = "IAM accepts a role session duration between 3600 and 43200 seconds."
   }
 }
 

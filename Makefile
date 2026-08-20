@@ -63,7 +63,7 @@ scan-terraform: ## Scan the Terraform for misconfiguration
 
 .PHONY: test-terraform
 test-terraform: ## Run the Terraform unit tests against a mocked provider
-	@for dir in $$(find terraform/modules -maxdepth 1 -mindepth 1 -type d | sort); do \
+	@for dir in $$(find terraform/modules terraform/envs -maxdepth 1 -mindepth 1 -type d | sort); do \
 		echo "==> testing $$dir"; \
 		terraform -chdir=$$dir init -backend=false -input=false -no-color > /dev/null; \
 		terraform -chdir=$$dir test -no-color; \
@@ -112,6 +112,12 @@ lint-k8s: ## Render every overlay and validate it against the upstream schemas
 		echo "==> validating $$overlay"; \
 		kubectl kustomize $$overlay | kubeconform -strict -summary -ignore-missing-schemas; \
 	done
+	python3 scripts/manifest-policy.py
+
+.PHONY: lint-scripts
+lint-scripts: ## Lint the shell scripts
+	docker run --rm --volume "$(CURDIR):/mnt" --workdir /mnt \
+		koalaman/shellcheck:stable --severity=style scripts/*.sh
 
 .PHONY: k8s-up
 k8s-up: ## Provision the local cluster and deploy the development overlay
@@ -130,7 +136,7 @@ k8s-down: ## Remove the local cluster
 # ---------------------------------------------------------------------------
 
 .PHONY: lint
-lint: lint-app lint-terraform lint-terraform-rules lint-k8s ## Run every static check
+lint: lint-app lint-terraform lint-terraform-rules lint-k8s lint-scripts ## Run every static check
 
 .PHONY: test
 test: test-app test-terraform ## Run every test suite

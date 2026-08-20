@@ -32,4 +32,22 @@ variable "operator_access_cidrs" {
   description = "Source ranges permitted to reach the public Kubernetes API endpoint. Narrow this to the office or VPN egress addresses."
   type        = list(string)
   default     = ["203.0.113.0/24"]
+  validation {
+    condition     = length(var.operator_access_cidrs) > 0
+    error_message = "At least one source range must be permitted, otherwise the endpoint is unreachable."
+  }
+
+  # Validated here as well as in the eks module. The module is the enforcement point;
+  # repeating the rule at the environment boundary means the operator editing
+  # terraform.tfvars is told immediately, at the line they changed.
+  validation {
+    condition     = !contains(var.operator_access_cidrs, "0.0.0.0/0")
+    error_message = "The Kubernetes API endpoint must not be exposed to the whole internet."
+  }
+
+  validation {
+    condition     = alltrue([for cidr in var.operator_access_cidrs : can(cidrhost(cidr, 0))])
+    error_message = "Every entry must be a valid CIDR block."
+  }
+
 }

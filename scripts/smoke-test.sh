@@ -57,7 +57,15 @@ check "metrics expose the request counter" "present" \
   "$(curl -s "${BASE_URL}/metrics" | grep -q '^http_requests_total' && echo present || echo absent)"
 
 log "checking the security context applied to the running pod"
-readonly POD="$(kubectl --context "${CONTEXT}" -n "${NAMESPACE}" get pods -l app.kubernetes.io/name="${SERVICE}" -o jsonpath='{.items[0].metadata.name}')"
+# Declared separately from the assignment so that a failure of the query is not
+# masked by the exit status of the declaration itself.
+POD="$(kubectl --context "${CONTEXT}" -n "${NAMESPACE}" get pods -l app.kubernetes.io/name="${SERVICE}" -o jsonpath='{.items[0].metadata.name}')"
+readonly POD
+
+if [[ -z "${POD}" ]]; then
+  log "no pod matched the service selector"
+  exit 1
+fi
 check "container runs as uid 10001" "10001" \
   "$(kubectl --context "${CONTEXT}" -n "${NAMESPACE}" get pod "${POD}" -o jsonpath='{.spec.securityContext.runAsUser}')"
 check "root filesystem is read-only" "true" \

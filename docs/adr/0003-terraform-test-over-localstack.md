@@ -41,9 +41,12 @@ Mocked values are synthesised, so assertions must target inputs and derived valu
 rather than computed attributes — the reason three IAM policy documents are
 overridden explicitly in the tests.
 
-**Gained.** Forty-three assertions covering the parts of the configuration that
-carry real risk, running in seconds, on every push, at no cost, with no credentials
-in existence anywhere.
+**Gained.** Fifty-six assertions covering the parts of the configuration that carry
+real risk, running in seconds, on every push, at no cost, with no credentials in
+existence anywhere. The environments are tested as root modules in their own right,
+which is what catches a production environment quietly inheriting a development
+trade-off — and what caught a role session ceiling below the floor IAM accepts,
+before any apply could reject it.
 
 Where a real plan is wanted before an apply, it belongs in a separate pipeline that
 federates into an account through OIDC — the shape of which is already present, and

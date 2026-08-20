@@ -24,11 +24,22 @@ AWS account, on every push.
 
 | Requirement | Artefact | How it is verified |
 | --- | --- | --- |
-| Cloud infrastructure on AWS | `terraform/` — VPC, EKS, ECR, IRSA, KMS, CloudWatch | `validate`, `tflint`, `checkov`, and 43 unit tests |
-| Container orchestration | `k8s/` — base and two overlays | applied to a real cluster in CI, rollout awaited, workload exercised |
-| Containers | `docker/Dockerfile` | built, run unprivileged and read-only, scanned with Trivy |
+| Cloud infrastructure on AWS | `terraform/` — VPC, EKS, ECR, IRSA, KMS, CloudWatch | `validate`, `tflint`, `checkov` (191 passing), and 56 unit tests |
+| Container orchestration | `k8s/` — base and two overlays | dev applied to a real cluster in CI; 59 policy assertions over both rendered overlays |
+| Containers | `docker/Dockerfile` | built, run unprivileged and read-only, scanned with Trivy, linted with hadolint |
 | Infrastructure as code | `terraform/modules/`, `terraform/envs/` | `terraform test` against a mocked provider — no credentials |
 | CI/CD | `.github/workflows/` | the three pipelines that run everything above |
+
+The gates are set where the work actually stands, not below it: Python coverage is
+100 % with the threshold set to 100, warnings are errors, `mypy` runs in strict mode,
+and every shell script passes `shellcheck` at style severity.
+
+Production receives particular attention because no cluster here can provision an
+Application Load Balancer or an IAM role. `scripts/manifest-policy.py` renders both
+overlays and asserts what schema validation cannot: that no container runs as root or
+on a writable filesystem, that no image reference is mutable, that liveness and
+readiness stay distinct, that zonal spread is required rather than preferred, and
+that load balancer health checks target readiness.
 
 The path to AWS is written out in full and left dormant: the `publish` job in
 `ci.yml` assumes a role through OIDC federation and pushes to Amazon ECR, guarded

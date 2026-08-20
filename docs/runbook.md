@@ -89,5 +89,5 @@ aws iam put-role-policy --role-name <role> --policy-name emergency-deny \
 ```
 
 An explicit deny overrides every allow immediately. Sessions already issued remain
-valid for at most fifteen minutes in production, which is the reason the session
-duration is set to the floor.
+valid until they expire, bounded by the role's session ceiling of one hour, which is
+the lowest value IAM accepts and the reason production is set to it.

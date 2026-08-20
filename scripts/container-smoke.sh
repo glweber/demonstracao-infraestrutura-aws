@@ -36,14 +36,16 @@ for _ in $(seq 1 30); do
   sleep 1
 done
 
-readonly STATUS="$(curl --silent --output /dev/null --write-out '%{http_code}' "http://127.0.0.1:${PORT}/healthz")"
+STATUS="$(curl --silent --output /dev/null --write-out '%{http_code}' "http://127.0.0.1:${PORT}/healthz")"
+readonly STATUS
 if [[ "${STATUS}" != "200" ]]; then
   printf '[container-smoke] liveness returned %s\n' "${STATUS}" >&2
   docker logs "${CONTAINER}" >&2 || true
   exit 1
 fi
 
-readonly IDENTITY="$(docker exec "${CONTAINER}" id -u)"
+IDENTITY="$(docker exec "${CONTAINER}" id -u)"
+readonly IDENTITY
 if [[ "${IDENTITY}" != "10001" ]]; then
   printf '[container-smoke] container runs as uid %s, expected 10001\n' "${IDENTITY}" >&2
   exit 1

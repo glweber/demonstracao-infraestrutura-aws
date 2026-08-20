@@ -21,9 +21,10 @@ dependencies = [
 dev = [
   "pytest==9.1.1",
   "pytest-cov==7.1.0",
-  "httpx==0.28.1",
+  "httpx2==2.12.0",
   "mypy==2.3.1",
   "ruff==0.16.3",
+  "pyyaml==6.0.3",
 ]
 
 [tool.setuptools.packages.find]
@@ -58,8 +59,20 @@ files = ["src", "tests"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--strict-markers --cov=service --cov-report=term-missing --cov-fail-under=90"
+# The gate is set at the level actually achieved. A threshold below it merely
+# records how much regression is tolerated before anyone is told.
+addopts = "--strict-markers --strict-config --cov=service --cov-report=term-missing --cov-fail-under=100"
+filterwarnings = ["error"]
 pythonpath = ["src"]
 
 [tool.coverage.run]
 branch = true
+
+[tool.coverage.report]
+# A line excluded from measurement is a line nobody is accountable for, so the
+# exclusion list is limited to constructs that cannot execute at runtime.
+exclude_also = [
+  "if TYPE_CHECKING:",
+  "raise NotImplementedError",
+  "@overload",
+]

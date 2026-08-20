@@ -22,8 +22,9 @@ Use IRSA. The node role carries only what the kubelet and CNI require.
   onto that node, including pods from other teams and future workloads nobody has
   written yet. The grant is invisible from the workload's own manifest.
 - IRSA binds a role to a single service account in a single namespace, through the
-  `sub` condition in the trust policy. The credential is issued by STS, lives for
-  fifteen minutes in production, and is refreshed from a token the kubelet rotates.
+  `sub` condition in the trust policy. The credential is issued by STS, is bounded by
+  the role's session ceiling of one hour, and is renewed from a projected token that
+  the kubelet rotates well before it expires.
 - The permission is visible where it is used: an annotation on the service account,
   next to the workload that relies on it.
 
@@ -34,8 +35,8 @@ policy, so the number of roles grows with the number of workloads. The cluster m
 have an OIDC provider registered, which the `eks` module creates.
 
 **Gained.** No long-lived credential exists anywhere in the system. A compromised
-pod obtains only its own permissions, for at most fifteen minutes, and an explicit
-deny on the role revokes even that.
+pod obtains only its own permissions, bounded by the role's one-hour session ceiling,
+and an explicit deny on the role revokes even that immediately.
 
 **Guarded.** Two properties in the trust policy are the entire boundary, so both are
 asserted in `terraform/modules/irsa/tests/`: the subject must be an exact match

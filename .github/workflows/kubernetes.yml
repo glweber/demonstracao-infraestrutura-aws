@@ -65,6 +65,19 @@ jobs:
               | kubeconform -strict -summary -ignore-missing-schemas -kubernetes-version 1.31.0
           done
 
+      - name: Install the policy checker's dependency
+        run: python3 -m pip install --quiet pyyaml==6.0.3
+
+      # Schema validation accepts a manifest that runs as root, pulls a mutable tag
+      # or omits a probe. This asserts the invariants that must hold instead, and it
+      # is the only verification the production overlay receives: no cluster here can
+      # provision a load balancer or an IAM role.
+      - name: Assert the manifest invariants
+        run: python3 scripts/manifest-policy.py
+
+      - name: Lint the shell scripts
+        run: shellcheck --severity=style scripts/*.sh
+
   cluster:
     name: cluster
     runs-on: ubuntu-24.04

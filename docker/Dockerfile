@@ -6,14 +6,19 @@
 # environment. Stage 2 copies only that environment and the interpreter, so build
 # toolchains, package caches and source archives never reach the published layer.
 #
-# The base image is pinned by digest rather than by tag. A tag is mutable and can be
-# repointed at different content, which would silently alter a rebuild; a digest is
+# The base image carries both a tag and a digest. The digest is what pins the build:
+# a tag is mutable and can be repointed at different content, whereas a digest is
 # content-addressed and therefore reproducible.
+#
+# The tag is not decoration. A digest-only reference names no release line, so an
+# automated dependency update has nothing to track and resolves against the default
+# tag instead — which silently proposed a jump from Python 3.12 on bookworm to 3.14
+# on trixie. Naming the tag confines any proposed digest to this release line.
 
 # ---------------------------------------------------------------------------
 # Stage 1 — build
 # ---------------------------------------------------------------------------
-FROM python@sha256:a116514e19457bcb7af7efe9c3dd0b9b71e85b317694e7882a1c52aa15a78134 AS build
+FROM python:3.12-slim-bookworm@sha256:a116514e19457bcb7af7efe9c3dd0b9b71e85b317694e7882a1c52aa15a78134 AS build
 
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=1 \
@@ -42,7 +47,7 @@ RUN python -m venv /opt/venv \
 # ---------------------------------------------------------------------------
 # Stage 2 — runtime
 # ---------------------------------------------------------------------------
-FROM python@sha256:a116514e19457bcb7af7efe9c3dd0b9b71e85b317694e7882a1c52aa15a78134 AS runtime
+FROM python:3.12-slim-bookworm@sha256:a116514e19457bcb7af7efe9c3dd0b9b71e85b317694e7882a1c52aa15a78134 AS runtime
 
 # Build metadata supplied by the build system; surfaced by the service at "/" and
 # recorded as OCI annotations so that a running image can be traced to its source.

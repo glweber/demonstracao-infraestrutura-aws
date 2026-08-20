@@ -151,9 +151,10 @@ module "workload_irsa" {
   service_account_name = "demonstration-service"
   inline_policy_json   = data.aws_iam_policy_document.workload.json
 
-  # Production credentials are held for fifteen minutes, the shortest window the
-  # service permits, limiting the value of a leaked token.
-  max_session_duration_seconds = 900
+  # One hour, the shortest ceiling IAM accepts for a role. The credential the
+  # workload actually holds is shorter still: the SDK requests its own duration and
+  # renews from the projected token, which the kubelet rotates.
+  max_session_duration_seconds = 3600
 }
 
 module "observability" {

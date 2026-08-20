@@ -11,6 +11,7 @@
 | kind | 0.30 | The local Kubernetes cluster |
 | kubeconform | 0.7 | Validating manifests against the upstream schemas |
 | Make | 4 | The task entry points |
+| shellcheck | 0.9 | Linting the shell scripts; run through its published image |
 
 Kustomize is not required separately: `kubectl kustomize` renders the overlays.
 
@@ -35,13 +36,23 @@ before installing them.
 
 ```bash
 make install    # editable install with the development extras
-make lint       # ruff, mypy, terraform fmt and validate, kustomize, kubeconform
-make test       # pytest with its coverage gate, and terraform test
+make lint       # ruff, mypy, terraform, kubeconform, manifest policy, shellcheck
+make test       # pytest at a 100 % gate, and terraform test for modules and envs
 make build      # build the image and run it read-only and unprivileged
+make scan       # Trivy against the exported image
 make k8s-up     # create the cluster, load the image, apply the dev overlay
 make verify     # await the rollout and assert the workload's contracts
 make k8s-down   # remove the cluster
 ```
+
+Two checks are worth knowing about individually:
+
+- `scripts/manifest-policy.py` renders both overlays and asserts the invariants that
+  schema validation cannot see. It is the only verification the production overlay
+  receives, since no local cluster can provision a load balancer or an IAM role.
+- `make scan-terraform` runs Checkov. Deviations from its default policy are recorded
+  as `checkov:skip` comments at the point the decision is made, never in a central
+  ignore list.
 
 `make all` runs the sequence end to end. `make help` lists every target.
 

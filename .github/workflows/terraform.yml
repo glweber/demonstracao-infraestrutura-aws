@@ -152,6 +152,10 @@ jobs:
           - terraform/modules/ecr
           - terraform/modules/irsa
           - terraform/modules/observability
+          # The environments are root modules with composition tests of their own,
+          # asserting the trade-offs each one selects.
+          - terraform/envs/dev
+          - terraform/envs/prod
 
     steps:
       - name: Check out the repository

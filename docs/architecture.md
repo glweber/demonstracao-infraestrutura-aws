@@ -70,7 +70,7 @@ graph TB
 | --- | --- |
 | Internet to load balancer | Security group; TLS 1.3 policy; invalid header fields dropped |
 | Load balancer to pod | NetworkPolicy admits port 8000 only; default deny for everything else |
-| Pod to AWS API | IRSA: a token scoped to one service account, exchanged for credentials valid for 15 minutes |
+| Pod to AWS API | IRSA: a token scoped to one service account, exchanged for a session bounded by the role's one-hour ceiling |
 | Pod to node metadata | IMDSv2 required, hop limit 1 — the container cannot reach the metadata service |
 | Node to control plane | Private endpoint; public endpoint restricted to an explicit allow-list |
 | Control plane to etcd | Secrets encrypted with a customer-managed KMS key that rotates automatically |

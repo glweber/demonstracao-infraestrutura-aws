@@ -61,6 +61,10 @@ oversight:
   Configuration comes from the environment.
 - Non-trivial logic — a branch, a loop, a parser, a monetary calculation, a security
   path — ships with an executable test.
+- Quality gates are set at the level actually achieved, never below it. A threshold
+  beneath the current standard only records how much regression is tolerated before
+  anyone is told. Python coverage is therefore gated at 100 %, and warnings are
+  errors.
 - Complexity requires a recorded justification. Simplicity is the default.
 - Commit messages are impersonal and imperative, describing the change rather than
   the process. No co-authorship trailers and no tool attribution.

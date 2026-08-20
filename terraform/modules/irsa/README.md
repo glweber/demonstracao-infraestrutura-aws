@@ -16,7 +16,7 @@ module "workload_irsa" {
   service_account_name = "demonstration-service"
   inline_policy_json   = data.aws_iam_policy_document.workload.json
 
-  max_session_duration_seconds = 900
+  max_session_duration_seconds = 3600
 }
 ```
 

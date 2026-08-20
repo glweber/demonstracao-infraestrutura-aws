@@ -103,6 +103,18 @@ run "rejects_an_issuer_url_carrying_a_scheme" {
   expect_failures = [var.oidc_provider_url]
 }
 
+run "rejects_a_session_duration_below_the_floor_iam_accepts" {
+  command = plan
+
+  # IAM rejects any role session ceiling under one hour. Catching it here turns an
+  # apply-time API rejection into a plan-time validation error.
+  variables {
+    max_session_duration_seconds = 900
+  }
+
+  expect_failures = [var.max_session_duration_seconds]
+}
+
 run "rejects_a_session_duration_beyond_the_permitted_ceiling" {
   command = plan
 
