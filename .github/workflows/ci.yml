@@ -116,23 +116,34 @@ jobs:
       - name: Confirm the image serves traffic under the cluster's constraints
         run: scripts/container-smoke.sh "${IMAGE}"
 
+      # The image is exported to an archive so that the scanner reads it from a
+      # file. Trivy runs from its published image rather than from an installer
+      # script, and reaches neither the Docker socket nor the daemon, so the
+      # scanning step holds no privilege over the host.
+      - name: Export the image for scanning
+        run: docker save "${IMAGE}" --output image.tar
+
       - name: Scan the image for known vulnerabilities
-        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
-        with:
-          image-ref: ${{ env.IMAGE }}
-          format: table
-          severity: HIGH,CRITICAL
-          # Findings without a published fix are reported but do not block the
-          # build, since no action is available to the team that would clear them.
-          ignore-unfixed: true
-          exit-code: "1"
+        run: |
+          docker run --rm \
+            --volume "${PWD}:/workspace" \
+            --workdir /workspace \
+            aquasec/trivy:0.74.0 image \
+              --input image.tar \
+              --format table \
+              --severity HIGH,CRITICAL \
+              --ignore-unfixed \
+              --exit-code 1
 
       - name: Generate the software bill of materials
-        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
-        with:
-          image-ref: ${{ env.IMAGE }}
-          format: cyclonedx
-          output: sbom.cyclonedx.json
+        run: |
+          docker run --rm \
+            --volume "${PWD}:/workspace" \
+            --workdir /workspace \
+            aquasec/trivy:0.74.0 image \
+              --input image.tar \
+              --format cyclonedx \
+              --output sbom.cyclonedx.json
 
       - name: Retain the bill of materials as a build artefact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

@@ -85,9 +85,17 @@ build: ## Build the container image and confirm it serves traffic
 
 .PHONY: scan
 scan: ## Scan the image for known vulnerabilities
+	docker save $(IMAGE) --output image.tar
 	docker run --rm \
-		--volume /var/run/docker.sock:/var/run/docker.sock \
-		aquasec/trivy:latest image --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 $(IMAGE)
+		--volume "$(CURDIR):/workspace" \
+		--workdir /workspace \
+		aquasec/trivy:0.74.0 image \
+			--input image.tar \
+			--format table \
+			--severity HIGH,CRITICAL \
+			--ignore-unfixed \
+			--exit-code 1
+	rm -f image.tar
 
 # ---------------------------------------------------------------------------
 # Kubernetes
@@ -134,4 +142,4 @@ all: lint test build k8s-up verify ## Run the full pipeline end to end
 clean: k8s-down ## Remove the local cluster and build artefacts
 	docker rmi $(IMAGE) 2>/dev/null || true
 	find . -type d -name __pycache__ -prune -exec rm -rf {} + 2>/dev/null || true
-	rm -rf app/.pytest_cache app/.mypy_cache app/.ruff_cache app/.coverage
+	rm -rf app/.pytest_cache app/.mypy_cache app/.ruff_cache app/.coverage image.tar

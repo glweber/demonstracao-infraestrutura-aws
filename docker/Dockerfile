@@ -32,7 +32,12 @@ COPY app/src ./src
 # "uv lock") is the upgrade path when full supply-chain reproducibility is required.
 RUN python -m venv /opt/venv \
     && /opt/venv/bin/pip install --no-cache-dir --upgrade pip setuptools wheel \
-    && /opt/venv/bin/pip install --no-cache-dir .
+    && /opt/venv/bin/pip install --no-cache-dir . \
+    && /opt/venv/bin/pip uninstall --yes pip setuptools wheel
+
+# The installer and its build tools are removed once installation is complete. A
+# running service never needs to install a package, so shipping them only widens
+# the vulnerability surface and gives an attacker a package manager to work with.
 
 # ---------------------------------------------------------------------------
 # Stage 2 — runtime
