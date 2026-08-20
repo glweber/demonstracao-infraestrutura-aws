@@ -4,7 +4,7 @@
 
 | Tool | Minimum version | Used for |
 | --- | --- | --- |
-| Python | 3.12 | The application and its tests |
+| Python | 3.12 or later | The application and its tests. 3.12 is the supported floor; the runtime image ships 3.14 and CI covers all three |
 | Docker | 24 | Building and running the image, and hosting the local cluster |
 | Terraform | 1.10 | `validate` and `test`; 1.10 introduces native S3 state locking |
 | kubectl | 1.30 | Applying manifests; supplies `kubectl kustomize` |

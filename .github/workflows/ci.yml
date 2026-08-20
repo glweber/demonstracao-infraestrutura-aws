@@ -40,10 +40,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # The lower bound is the version declared in requires-python; the upper
-        # bound is the next release, so an incompatibility surfaces before it is
-        # forced by a base image upgrade.
-        python-version: ["3.12", "3.13"]
+        # The lower bound is the version declared in requires-python. The upper bound
+        # is the version the runtime image actually ships, so the code is never
+        # shipped on an interpreter no job has run it on. The release between them is
+        # covered so that an incompatibility is attributable to one version.
+        python-version: ["3.12", "3.13", "3.14"]
 
     steps:
       - name: Check out the repository

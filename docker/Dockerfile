@@ -18,7 +18,7 @@
 # ---------------------------------------------------------------------------
 # Stage 1 — build
 # ---------------------------------------------------------------------------
-FROM python:3.12-slim-bookworm@sha256:a116514e19457bcb7af7efe9c3dd0b9b71e85b317694e7882a1c52aa15a78134 AS build
+FROM python:3.14-slim-bookworm@sha256:23c59390fc717bf09f9336908199a0ae75d9c4264bf296123f94ad772fea3b52 AS build
 
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=1 \
@@ -47,7 +47,7 @@ RUN python -m venv /opt/venv \
 # ---------------------------------------------------------------------------
 # Stage 2 — runtime
 # ---------------------------------------------------------------------------
-FROM python:3.12-slim-bookworm@sha256:a116514e19457bcb7af7efe9c3dd0b9b71e85b317694e7882a1c52aa15a78134 AS runtime
+FROM python:3.14-slim-bookworm@sha256:23c59390fc717bf09f9336908199a0ae75d9c4264bf296123f94ad772fea3b52 AS runtime
 
 # Build metadata supplied by the build system; surfaced by the service at "/" and
 # recorded as OCI annotations so that a running image can be traced to its source.
@@ -69,6 +69,14 @@ ENV PATH="/opt/venv/bin:${PATH}" \
     APP_VERSION="${APP_VERSION}" \
     APP_COMMIT_SHA="${COMMIT_SHA}" \
     APP_PORT=8000
+
+# The interpreter image ships pip in the system site-packages. The service runs from
+# the virtual environment, which has no pip of its own, so the system copy is never
+# used — it only contributes its vendored dependencies to the vulnerability surface
+# and hands anyone who gains execution a package manager. Removing it is the same
+# reasoning applied to the build tools above.
+RUN python -m pip uninstall --yes pip \
+    && rm -rf /usr/local/lib/python*/site-packages/pip* /usr/local/bin/pip*
 
 # A dedicated unprivileged account with a fixed, high UID. The numeric identity is
 # what "runAsUser" and "runAsNonRoot" assert against in the pod security context, so
