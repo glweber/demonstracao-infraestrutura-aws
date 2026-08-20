@@ -45,11 +45,14 @@ make verify     # await the rollout and assert the workload's contracts
 make k8s-down   # remove the cluster
 ```
 
-Two checks are worth knowing about individually:
+Three checks are worth knowing about individually:
 
 - `scripts/manifest-policy.py` renders both overlays and asserts the invariants that
   schema validation cannot see. It is the only verification the production overlay
   receives, since no local cluster can provision a load balancer or an IAM role.
+- `scripts/docs-check.py` asserts that the documentation still describes the
+  repository: links resolve, stated test counts match, every make target is in
+  `make help`, and the decision index lists exactly the records present.
 - `make scan-terraform` runs Checkov. Deviations from its default policy are recorded
   as `checkov:skip` comments at the point the decision is made, never in a central
   ignore list.

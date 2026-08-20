@@ -46,5 +46,5 @@ permissions regardless of any policy attached later.
 
 ## Tests
 
-`terraform test` — eight runs, four of which exist solely to guard the trust policy
-against widening.
+`terraform test` — nine runs, four of which exist solely to guard the trust policy
+against widening, plus the session-duration bounds IAM enforces.

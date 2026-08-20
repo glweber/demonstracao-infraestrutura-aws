@@ -72,6 +72,18 @@ oversight:
   Validation blocks encode the constraints that would otherwise fail at apply time.
 - Third-party GitHub Actions are pinned to a full commit SHA, never to a tag.
 
+## Documentation
+
+Every directory a reader can land in carries a README that says what it holds and why
+it is arranged that way. A decision that is not obvious from the configuration is
+recorded as an ADR rather than explained in a commit message nobody will find again.
+
+Claims that can be checked mechanically are checked: `scripts/docs-check.py` runs on
+every push and fails the build when a link stops resolving, a stated test count stops
+matching, a make target escapes `make help`, or the decision index falls out of step
+with the records on disk. Documentation that is merely asserted rots; documentation
+that is asserted and verified does not.
+
 ## Publication
 
 Nothing from this repository is published to any external service: no image

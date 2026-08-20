@@ -114,6 +114,10 @@ lint-k8s: ## Render every overlay and validate it against the upstream schemas
 	done
 	python3 scripts/manifest-policy.py
 
+.PHONY: lint-docs
+lint-docs: ## Assert the documentation still describes the repository
+	python3 scripts/docs-check.py
+
 .PHONY: lint-scripts
 lint-scripts: ## Lint the shell scripts
 	docker run --rm --volume "$(CURDIR):/mnt" --workdir /mnt \
@@ -136,7 +140,7 @@ k8s-down: ## Remove the local cluster
 # ---------------------------------------------------------------------------
 
 .PHONY: lint
-lint: lint-app lint-terraform lint-terraform-rules lint-k8s lint-scripts ## Run every static check
+lint: lint-app lint-terraform lint-terraform-rules lint-k8s lint-scripts lint-docs ## Run every static check
 
 .PHONY: test
 test: test-app test-terraform ## Run every test suite

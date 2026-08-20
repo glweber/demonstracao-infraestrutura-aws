@@ -49,7 +49,7 @@ and reviewable; it simply never runs. Fully wired, never fired.
 ## Verification without an AWS account
 
 ```bash
-make lint      # ruff, mypy, terraform fmt and validate, kustomize, kubeconform
+make lint      # ruff, mypy, terraform, kubeconform, manifest policy, shellcheck, docs
 make test      # pytest with a coverage gate, and terraform test against mocks
 make build     # build the image, then run it read-only and unprivileged
 make k8s-up    # create a local cluster, load the image, apply the dev overlay
@@ -64,13 +64,22 @@ make k8s-down
 
 ```
 app/         FastAPI workload: distinct liveness and readiness, metrics, JSON logs
-docker/      Multi-stage build, digest-pinned base, non-root, read-only rootfs
-terraform/   Five modules, two environments, unit tests beside each module
+docker/      Multi-stage build, tag-and-digest pinned base, non-root, read-only rootfs
+terraform/   Five modules, two environments, unit tests beside each of them
 k8s/         Kustomize base and dev/prod overlays
 .github/     Three pipelines; every action pinned to a commit SHA
-docs/        Architecture, Well-Architected mapping, runbook, ADRs
-scripts/     Cluster lifecycle and the smoke tests used by CI
+docs/        Architecture, Well-Architected mapping, runbook, conventions, ADRs
+scripts/     Cluster lifecycle and every verification CI runs
 ```
+
+Each directory carries a README explaining what it holds and why it is arranged that
+way: [app](app/README.md), [terraform](terraform/README.md),
+[environments](terraform/envs/README.md), [k8s](k8s/README.md),
+[scripts](scripts/README.md), and one per Terraform module.
+
+`scripts/docs-check.py` keeps those documents honest, asserting on every push that
+each relative link resolves, that every stated test count matches the tests that
+exist, and that every make target appears in `make help`.
 
 ## Design decisions
 

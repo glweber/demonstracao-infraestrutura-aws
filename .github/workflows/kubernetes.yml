@@ -78,6 +78,12 @@ jobs:
       - name: Lint the shell scripts
         run: shellcheck --severity=style scripts/*.sh
 
+      # Documentation drifts silently: a link survives a rename as a dead reference,
+      # and a stated test count survives a new test as an understatement. Both had
+      # already happened here before this check existed.
+      - name: Assert the documentation still describes the repository
+        run: python3 scripts/docs-check.py
+
   cluster:
     name: cluster
     runs-on: ubuntu-24.04

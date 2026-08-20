@@ -19,5 +19,8 @@ terraform
 **/*.egg-info
 app/tests
 *.md
+# The package manifest declares this file as its long description, so the build
+# fails without it in the context.
+!app/README.md
 .env
 .envrc
