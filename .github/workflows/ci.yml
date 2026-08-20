@@ -107,10 +107,11 @@ jobs:
             COMMIT_SHA=${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          # A software bill of materials and build provenance are attached to the
-          # image so that its contents can be audited without unpacking it.
-          sbom: true
-          provenance: mode=max
+          # Attestations are deliberately absent here. They are emitted as a
+          # manifest list, which the docker exporter that "load: true" relies on
+          # cannot export. The image is loaded so that it can be run and scanned in
+          # the following steps, so loading wins; the publish job below, which
+          # exports to a registry, attaches both attestations.
 
       - name: Confirm the image serves traffic under the cluster's constraints
         run: scripts/container-smoke.sh "${IMAGE}"

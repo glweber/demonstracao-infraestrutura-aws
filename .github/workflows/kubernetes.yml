@@ -84,13 +84,19 @@ jobs:
             --build-arg COMMIT_SHA="${GITHUB_SHA}" \
             .
 
-      - name: Create the cluster
-        uses: helm/kind-action@a1b0e391336a6ee6713a0583f8c6240d70863de3 # v1.12.0
-        with:
-          cluster_name: ${{ env.CLUSTER_NAME }}
-          config: k8s/kind-cluster.yaml
+      # kind is installed directly rather than through an action so that the CLI
+      # version matches the node image pinned in k8s/kind-cluster.yaml. A mismatch
+      # between the two breaks image side-loading, and it also means this job runs
+      # the same script a developer runs locally, with no CI-only path.
+      - name: Install kind
+        run: |
+          set -euo pipefail
+          version=v0.30.0
+          curl -fsSLo /tmp/kind "https://kind.sigs.k8s.io/dl/${version}/kind-linux-amd64"
+          sudo install -m 0755 /tmp/kind /usr/local/bin/kind
+          kind version
 
-      - name: Deploy the development overlay
+      - name: Create the cluster and deploy the development overlay
         run: scripts/kind-up.sh
 
       - name: Verify the running workload
