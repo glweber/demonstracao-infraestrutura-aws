@@ -15,7 +15,7 @@ license = "Apache-2.0"
 authors = [{ name = "Guilherme Weber" }]
 dependencies = [
   "fastapi==0.141.1",
-  "uvicorn[standard]==0.52.4",
+  "uvicorn[standard]==0.53.0",
   "prometheus-client==0.26.0",
 ]
 
@@ -23,9 +23,9 @@ dependencies = [
 dev = [
   "pytest==9.1.1",
   "pytest-cov==7.1.0",
-  "httpx2==2.12.0",
+  "httpx2==2.13.0",
   "mypy==2.3.1",
-  "ruff==0.16.3",
+  "ruff==0.16.8",
   "pyyaml==6.0.3",
 ]
 
