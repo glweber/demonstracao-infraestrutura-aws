@@ -14,8 +14,8 @@ requires-python = ">=3.12"
 license = "Apache-2.0"
 authors = [{ name = "Guilherme Weber" }]
 dependencies = [
-  "fastapi==0.141.1",
-  "uvicorn[standard]==0.52.4",
+  "fastapi==0.142.2",
+  "uvicorn[standard]==0.54.0",
   "prometheus-client==0.26.0",
 ]
 
@@ -23,9 +23,9 @@ dependencies = [
 dev = [
   "pytest==9.1.1",
   "pytest-cov==7.1.0",
-  "httpx2==2.12.0",
-  "mypy==2.3.1",
-  "ruff==0.16.3",
+  "httpx2==2.13.1",
+  "mypy==2.4.0",
+  "ruff==0.16.10",
   "pyyaml==6.0.3",
 ]
 
